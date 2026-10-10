@@ -1,469 +1,161 @@
 
 
--- 👑 MANT HUB | ADAPT STYLE
-
--- Zwart-gouden mobiele GUI
-
--- Voor je eigen Roblox-game
+-- 🎭 MANT HUB (Emir) ANIMATIONS
 
 local Players = game:GetService("Players")
 
-local Lighting = game:GetService("Lighting")
-
-local UIS = game:GetService("UserInputService")
-
 local player = Players.LocalPlayer
 
-local pg = player:WaitForChild("PlayerGui")
+local packs = {
 
-local old = pg:FindFirstChild("MantAdapt")
+    "Ninja",
 
-if old then old:Destroy() end
+    "Robot",
 
-local speed = 32
+    "Zombie",
 
-local carrySpeed = 24
+    "Levitation",
 
-local fullbright = false
+    "Superhero",
 
-local highlighted = false
+    "Stylish",
 
-local highlights = {}
+    "Vampire",
 
-local savedBrightness = Lighting.Brightness
+    "Bubbly",
 
-local savedClock = Lighting.ClockTime
+    "Toy",
 
-local GOLD = Color3.fromRGB(255, 201, 75)
+    "Cartoony"
 
-local BLACK = Color3.fromRGB(12, 12, 17)
+}
 
-local PANEL = Color3.fromRGB(25, 25, 32)
+local animations = {}
 
-local gui = Instance.new("ScreenGui")
+-- Vul geldige, toegestane animation-ID's in
 
-gui.Name = "MantAdapt"
+-- Bijvoorbeeld:
 
-gui.ResetOnSpawn = false
+-- animations["Ninja"] = "rbxassetid://JOUW_ID"
 
-gui.Parent = pg
+local frame = Instance.new("ScrollingFrame")
 
-local function round(obj, amount)
+frame.Name = "Animations"
 
-    local corner = Instance.new("UICorner")
+frame.Size = UDim2.fromOffset(220, 300)
 
-    corner.CornerRadius = UDim.new(0, amount)
+frame.Position = UDim2.new(0.5, -110, 0.2, 0)
 
-    corner.Parent = obj
+frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 
-end
+frame.ScrollBarThickness = 4
 
-local function panel(parent, size, position)
+frame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
-    local f = Instance.new("Frame")
+frame.CanvasSize = UDim2.fromOffset(0, 0)
 
-    f.Size = size
+frame.Parent = gui
 
-    f.Position = position
+local layout = Instance.new("UIListLayout")
 
-    f.BackgroundColor3 = BLACK
+layout.Padding = UDim.new(0, 5)
 
-    f.Active = true
+layout.Parent = frame
 
-    f.Parent = parent
+local activeTrack
 
-    round(f, 12)
+local function playPack(name)
 
-    local border = Instance.new("UIStroke")
+    local id = animations[name]
 
-    border.Color = GOLD
+    if not id then
 
-    border.Thickness = 1.5
+        warn("Geen Animation ID voor " .. name)
 
-    border.Parent = f
-
-    return f
-
-end
-
-local main = panel(
-
-    gui,
-
-    UDim2.fromOffset(300, 365),
-
-    UDim2.new(0.04, 0, 0.22, 0)
-
-)
-
-local title = Instance.new("TextLabel")
-
-title.Size = UDim2.new(1, -45, 0, 70)
-
-title.BackgroundTransparency = 1
-
-title.Text = "MANT"
-
-title.TextSize = 47
-
-title.Font = Enum.Font.GothamBlack
-
-title.TextColor3 = GOLD
-
-title.Parent = main
-
-local function button(parent, name, y, callback)
-
-    local b = Instance.new("TextButton")
-
-    b.Size = UDim2.new(1, -20, 0, 36)
-
-    b.Position = UDim2.fromOffset(10, y)
-
-    b.Text = name
-
-    b.TextSize = 13
-
-    b.Font = Enum.Font.GothamBold
-
-    b.TextColor3 = GOLD
-
-    b.BackgroundColor3 = PANEL
-
-    b.Parent = parent
-
-    round(b, 8)
-
-    b.MouseButton1Click:Connect(function()
-
-        callback(b)
-
-    end)
-
-    return b
-
-end
-
-local function humanoid()
-
-    local char = player.Character
-
-    return char and
-
-        char:FindFirstChildOfClass("Humanoid")
-
-end
-
-local function applySpeed()
-
-    local hum = humanoid()
-
-    if hum then
-
-        hum.WalkSpeed = speed
+        return
 
     end
 
-end
+    local character = player.Character
 
-local speedLabel = Instance.new("TextLabel")
+    local humanoid = character and
 
-speedLabel.Size = UDim2.new(1, 0, 0, 25)
+        character:FindFirstChildOfClass("Humanoid")
 
-speedLabel.Position = UDim2.fromOffset(0, 72)
+    if not humanoid then return end
 
-speedLabel.BackgroundTransparency = 1
+    local animator = humanoid:FindFirstChildOfClass("Animator")
 
-speedLabel.Text = "SPEED CONFIGURATION"
+    if not animator then return end
 
-speedLabel.TextColor3 = GOLD
+    if activeTrack then
 
-speedLabel.TextSize = 12
+        activeTrack:Stop()
 
-speedLabel.Parent = main
-
-button(main, "NORMAL SPEED: 32", 105, function(b)
-
-    speed = math.min(100, speed + 4)
-
-    applySpeed()
-
-    b.Text = "NORMAL SPEED: " .. speed
-
-end)
-
-button(main, "SPEED RESET", 147, function()
-
-    speed = 16
-
-    applySpeed()
-
-end)
-
-button(main, "CARRY SPEED: 24", 189, function(b)
-
-    carrySpeed = math.min(100, carrySpeed + 4)
-
-    b.Text = "CARRY SPEED: " .. carrySpeed
-
-end)
-
-button(main, "FULLBRIGHT: OFF", 231, function(b)
-
-    fullbright = not fullbright
-
-    b.Text = fullbright
-
-        and "FULLBRIGHT: ON"
-
-        or "FULLBRIGHT: OFF"
-
-    Lighting.Brightness = fullbright
-
-        and 3 or savedBrightness
-
-    Lighting.ClockTime = fullbright
-
-        and 14 or savedClock
-
-end)
-
-local status = Instance.new("TextLabel")
-
-status.Size = UDim2.new(1, -16, 0, 32)
-
-status.Position = UDim2.fromOffset(8, 275)
-
-status.BackgroundTransparency = 1
-
-status.TextColor3 = GOLD
-
-status.TextSize = 12
-
-status.Text = "👑 MANT HUB READY"
-
-status.Parent = main
-
--- Snelknoppen rechts
-
-local right = panel(
-
-    gui,
-
-    UDim2.fromOffset(130, 310),
-
-    UDim2.new(1, -145, 0.25, 0)
-
-)
-
-local function notify(message)
-
-    status.Text = message
-
-end
-
-button(right, "AUTO STEAL", 10, function()
-
-    notify("Auto Steal: servercode nodig")
-
-end)
-
-button(right, "AUTO RIGHT", 54, function()
-
-    notify("Auto Right: nog niet gekoppeld")
-
-end)
-
-button(right, "AUTO LEFT", 98, function()
-
-    notify("Auto Left: nog niet gekoppeld")
-
-end)
-
-button(right, "PLAYER ESP", 142, function(b)
-
-    highlighted = not highlighted
-
-    b.Text = highlighted
-
-        and "ESP: ON" or "PLAYER ESP"
-
-    for _, h in ipairs(highlights) do
-
-        h:Destroy()
+        activeTrack:Destroy()
 
     end
 
-    table.clear(highlights)
+    local animation = Instance.new("Animation")
 
-    if highlighted then
+    animation.AnimationId = id
 
-        for _, p in ipairs(Players:GetPlayers()) do
+    activeTrack = animator:LoadAnimation(animation)
 
-            if p ~= player and p.Character then
+    activeTrack:Play()
 
-                local h = Instance.new("Highlight")
+    animation:Destroy()
 
-                h.FillColor = GOLD
+end
 
-                h.OutlineColor = GOLD
+for _, name in ipairs(packs) do
 
-                h.FillTransparency = 0.75
+    local button = Instance.new("TextButton")
 
-                h.Adornee = p.Character
+    button.Size = UDim2.new(1, -10, 0, 36)
 
-                h.Parent = gui
+    button.BackgroundColor3 = Color3.fromRGB(45, 35, 18)
 
-                table.insert(highlights, h)
+    button.TextColor3 = Color3.fromRGB(255, 210, 90)
 
-            end
+    button.Text = "🎭 " .. name
 
-        end
+    button.Font = Enum.Font.GothamBold
 
-    end
+    button.TextSize = 14
 
-end)
+    button.Parent = frame
 
-button(right, "SPEED 32", 186, function()
+    button.MouseButton1Click:Connect(function()
 
-    speed = 32
-
-    applySpeed()
-
-    notify("Speed ingesteld op 32")
-
-end)
-
-button(right, "TP DOWN", 230, function()
-
-    notify("TP Down: nog niet gekoppeld")
-
-end)
-
-button(right, "HIDE MENU", 274, function()
-
-    main.Visible = false
-
-    right.Visible = false
-
-end)
-
--- Heropen-knop
-
-local open = Instance.new("TextButton")
-
-open.Size = UDim2.fromOffset(110, 35)
-
-open.Position = UDim2.fromOffset(10, 80)
-
-open.BackgroundColor3 = BLACK
-
-open.TextColor3 = GOLD
-
-open.Text = "👑 MANT"
-
-open.Font = Enum.Font.GothamBold
-
-open.Parent = gui
-
-round(open, 9)
-
-open.MouseButton1Click:Connect(function()
-
-    main.Visible = not main.Visible
-
-    right.Visible = main.Visible
-
-end)
-
--- Versleepbaar op mobiel
-
-local function draggable(f, handle)
-
-    local dragging = false
-
-    local start
-
-    local origin
-
-    handle.InputBegan:Connect(function(input)
-
-        if input.UserInputType ==
-
-            Enum.UserInputType.Touch or
-
-            input.UserInputType ==
-
-            Enum.UserInputType.MouseButton1 then
-
-            dragging = true
-
-            start = input.Position
-
-            origin = f.Position
-
-            local connection
-
-            connection = input.Changed:Connect(function()
-
-                if input.UserInputState ==
-
-                    Enum.UserInputState.End then
-
-                    dragging = false
-
-                    connection:Disconnect()
-
-                end
-
-            end)
-
-        end
-
-    end)
-
-    UIS.InputChanged:Connect(function(input)
-
-        if dragging and (
-
-            input.UserInputType ==
-
-                Enum.UserInputType.Touch or
-
-            input.UserInputType ==
-
-                Enum.UserInputType.MouseMovement
-
-        ) then
-
-            local delta = input.Position - start
-
-            f.Position = UDim2.new(
-
-                origin.X.Scale,
-
-                origin.X.Offset + delta.X,
-
-                origin.Y.Scale,
-
-                origin.Y.Offset + delta.Y
-
-            )
-
-        end
+        playPack(name)
 
     end)
 
 end
 
-draggable(main, title)
+local reset = Instance.new("TextButton")
 
-draggable(right, right)
+reset.Size = UDim2.new(1, -10, 0, 36)
 
-player.CharacterAdded:Connect(function()
+reset.Text = "🔄 RESET ANIMATION"
 
-    task.wait(0.5)
+reset.BackgroundColor3 = Color3.fromRGB(90, 35, 35)
 
-    applySpeed()
+reset.TextColor3 = Color3.new(1, 1, 1)
+
+reset.Parent = frame
+
+reset.MouseButton1Click:Connect(function()
+
+    if activeTrack then
+
+        activeTrack:Stop()
+
+        activeTrack:Destroy()
+
+        activeTrack = nil
+
+    end
 
 end)
