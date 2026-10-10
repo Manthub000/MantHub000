@@ -1,28 +1,30 @@
 
 
--- MANT HUB (Emir) GOLD EDITION
+-- MANT HUB (Emir) V10 GOLD EDITION
 
--- LocalScript: StarterPlayerScripts
+-- LocalScript voor je eigen Roblox-game
 
 local Players = game:GetService("Players")
 
+local RunService = game:GetService("RunService")
+
 local Lighting = game:GetService("Lighting")
 
-local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 
 local pg = player:WaitForChild("PlayerGui")
 
-local old = pg:FindFirstChild("MantHubEmir")
+local old = pg:FindFirstChild("MantEmirV10")
 
 if old then old:Destroy() end
 
-local GOLD = Color3.fromRGB(255, 205, 80)
+local GOLD = Color3.fromRGB(255, 205, 75)
 
-local DARK = Color3.fromRGB(12, 12, 16)
+local DARK = Color3.fromRGB(13, 13, 17)
 
-local PANEL = Color3.fromRGB(35, 31, 25)
+local PANEL = Color3.fromRGB(38, 33, 23)
 
 local speed = 32
 
@@ -30,25 +32,33 @@ local speedOn = false
 
 local espOn = false
 
+local namesOn = false
+
 local brightOn = false
 
-local autoTarget = nil
+local autoDestination = nil
 
 local running = true
+
+local minimized = false
+
+local oldBrightness = Lighting.Brightness
+
+local oldClock = Lighting.ClockTime
 
 local originalHumanoid = nil
 
 local originalSpeed = nil
 
+local activeTrack = nil
+
 local visuals = {}
 
 local connections = {}
 
-local activeTrack = nil
+-- Vul je eigen geldige animation-ID's in
 
--- Vul hier jouw toegestane Animation ID's in
-
-local animationIds = {
+local animations = {
 
     Ninja = "",
 
@@ -72,133 +82,177 @@ local animationIds = {
 
 }
 
+local function getParts()
+
+    local char = player.Character
+
+    local hum = char and
+
+        char:FindFirstChildOfClass("Humanoid")
+
+    local root = char and
+
+        char:FindFirstChild("HumanoidRootPart")
+
+    return char, hum, root
+
+end
+
 local gui = Instance.new("ScreenGui")
 
-gui.Name = "MantHubEmir"
+gui.Name = "MantEmirV10"
 
 gui.ResetOnSpawn = false
 
+gui.DisplayOrder = 100
+
 gui.Parent = pg
 
-local function round(obj)
+local function round(object, amount)
 
     local c = Instance.new("UICorner")
 
-    c.CornerRadius = UDim.new(0, 9)
+    c.CornerRadius = UDim.new(0, amount or 9)
 
-    c.Parent = obj
-
-end
-
-local function panel(size, pos)
-
-    local f = Instance.new("Frame")
-
-    f.Size = size
-
-    f.Position = pos
-
-    f.BackgroundColor3 = DARK
-
-    f.BorderSizePixel = 0
-
-    f.Active = true
-
-    f.Parent = gui
-
-    round(f)
-
-    local border = Instance.new("UIStroke")
-
-    border.Color = GOLD
-
-    border.Thickness = 1.5
-
-    border.Parent = f
-
-    return f
+    c.Parent = object
 
 end
 
-local main = panel(
+local function makePanel(size, position)
 
-    UDim2.fromOffset(285, 370),
+    local frame = Instance.new("Frame")
 
-    UDim2.new(0.04, 0, 0.2, 0)
+    frame.Size = size
+
+    frame.Position = position
+
+    frame.BackgroundColor3 = DARK
+
+    frame.BorderSizePixel = 0
+
+    frame.Active = true
+
+    frame.Parent = gui
+
+    round(frame, 13)
+
+    local stroke = Instance.new("UIStroke")
+
+    stroke.Color = GOLD
+
+    stroke.Thickness = 2
+
+    stroke.Parent = frame
+
+    return frame
+
+end
+
+local main = makePanel(
+
+    UDim2.fromOffset(270, 355),
+
+    UDim2.new(0.03, 0, 0.19, 0)
 
 )
 
-local quick = panel(
+local quick = makePanel(
 
-    UDim2.fromOffset(125, 320),
+    UDim2.fromOffset(125, 315),
 
-    UDim2.new(1, -135, 0.23, 0)
+    UDim2.new(1, -135, 0.22, 0)
 
 )
 
-local function label(parent, value, size)
+local function text(parent, value, height, size)
 
-    local l = Instance.new("TextLabel")
+    local label = Instance.new("TextLabel")
 
-    l.Size = UDim2.new(1, -12, 0, 37)
+    label.Size = UDim2.new(1, -12, 0, height)
 
-    l.BackgroundTransparency = 1
+    label.BackgroundTransparency = 1
 
-    l.Text = value
+    label.Text = value
 
-    l.TextColor3 = GOLD
+    label.TextColor3 = GOLD
 
-    l.TextSize = size or 14
+    label.TextSize = size or 14
 
-    l.Font = Enum.Font.GothamBold
+    label.Font = Enum.Font.GothamBold
 
-    l.Parent = parent
+    label.TextWrapped = true
 
-    return l
+    label.Parent = parent
+
+    return label
 
 end
 
-local title = label(main, "MANT HUB (Emir)", 23)
+local title = text(main, "MANT HUB", 50, 30)
 
 title.Position = UDim2.fromOffset(6, 5)
 
+title.Font = Enum.Font.GothamBlack
+
+local author = text(main, "(Emir) GOLD EDITION", 23, 13)
+
+author.Position = UDim2.fromOffset(6, 53)
+
+local status = text(main, "👑 MANT READY", 33, 12)
+
+status.Position = UDim2.fromOffset(6, 315)
+
 local tabs = Instance.new("Frame")
 
-tabs.Size = UDim2.new(1, -12, 0, 35)
+tabs.Size = UDim2.new(1, -12, 0, 34)
 
-tabs.Position = UDim2.fromOffset(6, 49)
+tabs.Position = UDim2.fromOffset(6, 83)
 
 tabs.BackgroundTransparency = 1
 
 tabs.Parent = main
 
-local tabsLayout = Instance.new("UIListLayout")
+local tabLayout = Instance.new("UIListLayout")
 
-tabsLayout.FillDirection = Enum.FillDirection.Horizontal
+tabLayout.FillDirection = Enum.FillDirection.Horizontal
 
-tabsLayout.Padding = UDim.new(0, 3)
+tabLayout.Padding = UDim.new(0, 3)
 
-tabsLayout.Parent = tabs
+tabLayout.Parent = tabs
 
 local pages = {}
+
+local selectedPage = nil
+
+local function switchPage(page)
+
+    selectedPage = page
+
+    for _, p in pairs(pages) do
+
+        p.Visible = p == page
+
+    end
+
+end
 
 local function makePage(name)
 
     local page = Instance.new("ScrollingFrame")
 
-    page.Size = UDim2.new(1, -16, 1, -130)
+    page.Size = UDim2.new(1, -16, 0, 185)
 
-    page.Position = UDim2.fromOffset(8, 91)
+    page.Position = UDim2.fromOffset(8, 124)
 
     page.BackgroundTransparency = 1
+
+    page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+    page.CanvasSize = UDim2.fromOffset(0, 0)
 
     page.ScrollBarThickness = 3
 
     page.ScrollBarImageColor3 = GOLD
-
-    page.CanvasSize = UDim2.fromOffset(0, 0)
-
-    page.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
     page.Visible = false
 
@@ -216,29 +270,23 @@ local function makePage(name)
 
     tab.Size = UDim2.new(0.25, -3, 1, 0)
 
-    tab.Text = name
+    tab.BackgroundColor3 = PANEL
+
+    tab.TextColor3 = GOLD
 
     tab.TextSize = 10
 
     tab.Font = Enum.Font.GothamBold
 
-    tab.BackgroundColor3 = PANEL
-
-    tab.TextColor3 = GOLD
+    tab.Text = name
 
     tab.Parent = tabs
 
-    round(tab)
+    round(tab, 6)
 
     tab.MouseButton1Click:Connect(function()
 
-        for _, p in pairs(pages) do
-
-            p.Visible = false
-
-        end
-
-        page.Visible = true
+        switchPage(page)
 
     end)
 
@@ -246,33 +294,33 @@ local function makePage(name)
 
 end
 
-local movePage = makePage("MOVE")
+local movement = makePage("MOVE")
 
-local visualPage = makePage("VISUAL")
+local visual = makePage("VISUAL")
 
 local animPage = makePage("ANIMS")
 
-local toolsPage = makePage("TOOLS")
+local tools = makePage("TOOLS")
 
-movePage.Visible = true
+switchPage(movement)
 
-local function button(parent, text, callback)
+local function makeButton(parent, value, callback)
 
     local b = Instance.new("TextButton")
 
-    b.Size = UDim2.new(1, -8, 0, 36)
+    b.Size = UDim2.new(1, -8, 0, 37)
 
     b.BackgroundColor3 = PANEL
 
     b.TextColor3 = GOLD
 
+    b.Font = Enum.Font.GothamBold
+
     b.TextSize = 12
 
     b.TextWrapped = true
 
-    b.Font = Enum.Font.GothamBold
-
-    b.Text = text
+    b.Text = value
 
     b.Parent = parent
 
@@ -288,25 +336,29 @@ local function button(parent, text, callback)
 
 end
 
-local status = label(main, "MANT READY", 12)
+-- Snelknoppen rechts
 
-status.Position = UDim2.fromOffset(6, 330)
+local quickScroll = Instance.new("ScrollingFrame")
 
-local function getParts()
+quickScroll.Size = UDim2.new(1, -12, 1, -12)
 
-    local char = player.Character
+quickScroll.Position = UDim2.fromOffset(6, 6)
 
-    local hum = char and
+quickScroll.BackgroundTransparency = 1
 
-        char:FindFirstChildOfClass("Humanoid")
+quickScroll.ScrollBarThickness = 2
 
-    local root = char and
+quickScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
-        char:FindFirstChild("HumanoidRootPart")
+quickScroll.CanvasSize = UDim2.fromOffset(0, 0)
 
-    return char, hum, root
+quickScroll.Parent = quick
 
-end
+local quickLayout = Instance.new("UIListLayout")
+
+quickLayout.Padding = UDim.new(0, 7)
+
+quickLayout.Parent = quickScroll
 
 local function applySpeed()
 
@@ -326,9 +378,7 @@ local function applySpeed()
 
         hum.WalkSpeed = speed
 
-    elseif originalHumanoid == hum
-
-        and originalSpeed ~= nil then
+    elseif originalHumanoid == hum and originalSpeed then
 
         hum.WalkSpeed = originalSpeed
 
@@ -338,51 +388,15 @@ local function applySpeed()
 
 end
 
--- MOVE
-
-button(movePage, "SPEED: OFF", function(b)
-
-    speedOn = not speedOn
-
-    b.Text = speedOn and "SPEED: ON" or "SPEED: OFF"
-
-    applySpeed()
-
-end)
-
-button(movePage, "SPEED +", function(b)
-
-    speed = math.min(100, speed + 4)
-
-    b.Text = "SPEED + | " .. speed
-
-    applySpeed()
-
-end)
-
-button(movePage, "SPEED -", function(b)
-
-    speed = math.max(16, speed - 4)
-
-    b.Text = "SPEED - | " .. speed
-
-    applySpeed()
-
-end)
-
--- TELEPORTS
-
 local function teleport(name)
 
-    local destination = workspace:FindFirstChild(name)
+    local destination = workspace:FindFirstChild(name, true)
 
     local _, _, root = getParts()
 
-    if not destination
+    if not destination or not destination:IsA("BasePart") then
 
-        or not destination:IsA("BasePart") then
-
-        status.Text = "Maak eerst " .. name
+        status.Text = "Missing: " .. name
 
         return
 
@@ -390,39 +404,21 @@ local function teleport(name)
 
     if root then
 
-        root.CFrame =
+        root.CFrame = destination.CFrame +
 
-            destination.CFrame + Vector3.new(0, 4, 0)
+            Vector3.new(0, 4, 0)
+
+        status.Text = "TP: " .. name
 
     end
 
 end
 
-button(movePage, "TP DOWN", function()
+local function clearVisuals()
 
-    teleport("MantDown")
+    for _, v in ipairs(visuals) do
 
-end)
-
-button(movePage, "TP BAT", function()
-
-    teleport("MantBat")
-
-end)
-
-button(movePage, "TP HOME", function()
-
-    teleport("MantHome")
-
-end)
-
--- VISUALS
-
-local function clearESP()
-
-    for _, item in ipairs(visuals) do
-
-        item:Destroy()
+        v:Destroy()
 
     end
 
@@ -430,29 +426,67 @@ local function clearESP()
 
 end
 
-local function refreshESP()
+local function updateESP()
 
-    clearESP()
-
-    if not espOn then return end
+    clearVisuals()
 
     for _, other in ipairs(Players:GetPlayers()) do
 
         if other ~= player and other.Character then
 
-            local h = Instance.new("Highlight")
+            local char = other.Character
 
-            h.FillColor = GOLD
+            local head = char:FindFirstChild("Head")
 
-            h.OutlineColor = GOLD
+            if espOn then
 
-            h.FillTransparency = 0.8
+                local highlight = Instance.new("Highlight")
 
-            h.Adornee = other.Character
+                highlight.Adornee = char
 
-            h.Parent = gui
+                highlight.FillColor = GOLD
 
-            table.insert(visuals, h)
+                highlight.OutlineColor = GOLD
+
+                highlight.FillTransparency = 0.75
+
+                highlight.Parent = gui
+
+                table.insert(visuals, highlight)
+
+            end
+
+            if namesOn and head then
+
+                local billboard = Instance.new("BillboardGui")
+
+                billboard.Adornee = head
+
+                billboard.Size = UDim2.fromOffset(155, 30)
+
+                billboard.StudsOffset =
+
+                    Vector3.new(0, 3, 0)
+
+                billboard.AlwaysOnTop = true
+
+                billboard.Parent = gui
+
+                local name = text(
+
+                    billboard,
+
+                    other.DisplayName,
+
+                    30, 14
+
+                )
+
+                name.Size = UDim2.fromScale(1, 1)
+
+                table.insert(visuals, billboard)
+
+            end
 
         end
 
@@ -460,53 +494,119 @@ local function refreshESP()
 
 end
 
-button(visualPage, "PLAYER ESP: OFF", function(b)
+-- MOVE
+
+makeButton(movement, "⚡ SPEED ON/OFF", function(b)
+
+    speedOn = not speedOn
+
+    b.Text = speedOn and "⚡ SPEED ON" or "⚡ SPEED OFF"
+
+    applySpeed()
+
+end)
+
+makeButton(movement, "⚡ SPEED +", function(b)
+
+    speed = math.min(100, speed + 4)
+
+    b.Text = "⚡ SPEED: " .. speed
+
+    applySpeed()
+
+end)
+
+makeButton(movement, "⚡ SPEED -", function(b)
+
+    speed = math.max(16, speed - 4)
+
+    b.Text = "⚡ SPEED: " .. speed
+
+    applySpeed()
+
+end)
+
+makeButton(movement, "💨 DASH", function()
+
+    local _, hum, root = getParts()
+
+    if hum and root and hum.MoveDirection.Magnitude > 0 then
+
+        root:ApplyImpulse(
+
+            hum.MoveDirection * root.AssemblyMass * 55
+
+        )
+
+    end
+
+end)
+
+makeButton(movement, "🌍 TP DOWN", function()
+
+    teleport("MantDown")
+
+end)
+
+makeButton(movement, "🏠 TP HOME", function()
+
+    teleport("MantHome")
+
+end)
+
+-- VISUAL
+
+makeButton(visual, "👀 PLAYER ESP", function(b)
 
     espOn = not espOn
 
-    b.Text = espOn
+    b.Text = "👀 ESP: " .. (espOn and "ON" or "OFF")
 
-        and "PLAYER ESP: ON"
-
-        or "PLAYER ESP: OFF"
-
-    refreshESP()
+    updateESP()
 
 end)
 
-local oldBrightness = Lighting.Brightness
+makeButton(visual, "🏷️ PLAYER NAMES", function(b)
 
-local oldClock = Lighting.ClockTime
+    namesOn = not namesOn
 
-button(visualPage, "FULLBRIGHT: OFF", function(b)
+    b.Text = "🏷️ NAMES: " ..
+
+        (namesOn and "ON" or "OFF")
+
+    updateESP()
+
+end)
+
+makeButton(visual, "💡 FULLBRIGHT", function(b)
 
     brightOn = not brightOn
 
-    b.Text = brightOn
+    Lighting.Brightness =
 
-        and "FULLBRIGHT: ON"
+        brightOn and 3 or oldBrightness
 
-        or "FULLBRIGHT: OFF"
+    Lighting.ClockTime =
 
-    Lighting.Brightness = brightOn
+        brightOn and 14 or oldClock
 
-        and 3 or oldBrightness
+    b.Text = "💡 FULLBRIGHT: " ..
 
-    Lighting.ClockTime = brightOn
-
-        and 14 or oldClock
+        (brightOn and "ON" or "OFF")
 
 end)
+
+local fpsText = text(visual, "FPS: --", 35, 15)
 
 -- ANIMATIONS
 
 local function playAnimation(name)
 
-    local id = animationIds[name]
+    local id = animations[name]
 
     if not id or id == "" then
 
-        status.Text = "Animation ID nodig: " .. name
+        status.Text = name .. ": ID nodig"
 
         return
 
@@ -526,31 +626,33 @@ local function playAnimation(name)
 
         activeTrack:Destroy()
 
+        activeTrack = nil
+
     end
 
-    local anim = Instance.new("Animation")
+    local animation = Instance.new("Animation")
 
-    anim.AnimationId = "rbxassetid://" .. id
+    animation.AnimationId = "rbxassetid://" .. id
 
-    local ok, track = pcall(function()
+    local ok, result = pcall(function()
 
-        return animator:LoadAnimation(anim)
+        return animator:LoadAnimation(animation)
 
     end)
 
-    anim:Destroy()
+    animation:Destroy()
 
-    if ok and track then
+    if ok then
 
-        activeTrack = track
+        activeTrack = result
 
         activeTrack:Play()
 
-        status.Text = "Playing: " .. name
+        status.Text = "🎭 " .. name
 
     else
 
-        status.Text = "Animation kon niet laden"
+        status.Text = "Animation load failed"
 
     end
 
@@ -558,15 +660,17 @@ end
 
 for _, name in ipairs({
 
-    "Ninja", "Robot", "Zombie", "Levitation",
+    "Ninja", "Robot", "Zombie",
 
-    "Superhero", "Stylish", "Vampire",
+    "Levitation", "Superhero",
+
+    "Stylish", "Vampire",
 
     "Bubbly", "Toy", "Cartoony"
 
 }) do
 
-    button(animPage, name, function()
+    makeButton(animPage, "🎭 " .. name, function()
 
         playAnimation(name)
 
@@ -574,7 +678,7 @@ for _, name in ipairs({
 
 end
 
-button(animPage, "RESET ANIMATION", function()
+makeButton(animPage, "🔄 RESET", function()
 
     if activeTrack then
 
@@ -590,39 +694,69 @@ end)
 
 -- TOOLS
 
-button(toolsPage, "AUTO LEFT", function()
+local function setAuto(name)
 
-    status.Text = "MantLeft: marker nodig"
+    autoDestination =
 
-end)
+        autoDestination == name and nil or name
 
-button(toolsPage, "AUTO RIGHT", function()
+    status.Text = autoDestination or "AUTO OFF"
 
-    status.Text = "MantRight: marker nodig"
+end
 
-end)
+makeButton(tools, "⬅️ AUTO LEFT", function()
 
-button(toolsPage, "AUTO STEAL", function()
-
-    status.Text = "Auto Steal: servercode nodig"
+    setAuto("MantLeft")
 
 end)
 
--- QUICK PANEL
+makeButton(tools, "➡️ AUTO RIGHT", function()
 
-button(quick, "TP DOWN", function()
+    setAuto("MantRight")
+
+end)
+
+makeButton(tools, "⛔ STOP AUTO", function()
+
+    autoDestination = nil
+
+    status.Text = "AUTO STOPPED"
+
+end)
+
+makeButton(tools, "🧠 AUTO STEAL INFO", function()
+
+    status.Text = "Game servercode nodig"
+
+end)
+
+-- QUICK BUTTONS
+
+makeButton(quickScroll, "TP DOWN", function()
 
     teleport("MantDown")
 
 end)
 
-button(quick, "TP BAT", function()
+makeButton(quickScroll, "TP BAT", function()
 
     teleport("MantBat")
 
 end)
 
-button(quick, "SPEED 32", function()
+makeButton(quickScroll, "AUTO LEFT", function()
+
+    setAuto("MantLeft")
+
+end)
+
+makeButton(quickScroll, "AUTO RIGHT", function()
+
+    setAuto("MantRight")
+
+end)
+
+makeButton(quickScroll, "SPEED 32", function()
 
     speed = 32
 
@@ -632,51 +766,285 @@ button(quick, "SPEED 32", function()
 
 end)
 
-button(quick, "PLAYER ESP", function()
+makeButton(quickScroll, "PLAYER ESP", function()
 
     espOn = not espOn
 
-    refreshESP()
+    updateESP()
 
 end)
 
-button(quick, "HIDE", function()
+-- HIDE / OPEN
 
-    main.Visible = false
+local open = Instance.new("TextButton")
 
-    quick.Visible = false
+open.Size = UDim2.fromOffset(135, 36)
 
-end)
+open.Position = UDim2.fromOffset(8, 70)
 
-local reopen = Instance.new("TextButton")
+open.BackgroundColor3 = DARK
 
-reopen.Size = UDim2.fromOffset(125, 34)
+open.TextColor3 = GOLD
 
-reopen.Position = UDim2.fromOffset(10, 65)
+open.Text = "👑 MANT (Emir)"
 
-reopen.BackgroundColor3 = DARK
+open.Font = Enum.Font.GothamBold
 
-reopen.TextColor3 = GOLD
+open.Parent = gui
 
-reopen.Text = "👑 MANT (Emir)"
+round(open)
 
-reopen.Font = Enum.Font.GothamBold
+local function setVisible(value)
 
-reopen.TextSize = 12
+    main.Visible = value
 
-reopen.Parent = gui
+    quick.Visible = value
 
-round(reopen)
+end
 
-reopen.MouseButton1Click:Connect(function()
+makeButton(quickScroll, "HIDE HUB", function()
 
-    main.Visible = not main.Visible
-
-    quick.Visible = main.Visible
+    setVisible(false)
 
 end)
 
--- Updates
+open.MouseButton1Click:Connect(function()
+
+    setVisible(not main.Visible)
+
+end)
+
+-- MINIMIZE
+
+local mini = Instance.new("TextButton")
+
+mini.Size = UDim2.fromOffset(25, 25)
+
+mini.Position = UDim2.new(1, -33, 0, 10)
+
+mini.Text = "−"
+
+mini.TextColor3 = GOLD
+
+mini.BackgroundColor3 = PANEL
+
+mini.Parent = main
+
+round(mini)
+
+mini.MouseButton1Click:Connect(function()
+
+    minimized = not minimized
+
+    tabs.Visible = not minimized
+
+    status.Visible = not minimized
+
+    main.Size = minimized
+
+        and UDim2.fromOffset(270, 80)
+
+        or UDim2.fromOffset(270, 355)
+
+    if minimized then
+
+        for _, page in pairs(pages) do
+
+            page.Visible = false
+
+        end
+
+    else
+
+        switchPage(selectedPage)
+
+    end
+
+end)
+
+-- VERSLEEPBAAR
+
+local function makeDraggable(frame, handle)
+
+    local dragging = false
+
+    local inputStart
+
+    local positionStart
+
+    local activeInput
+
+    local began = handle.InputBegan:Connect(function(input)
+
+        if input.UserInputType ==
+
+            Enum.UserInputType.Touch or
+
+            input.UserInputType ==
+
+            Enum.UserInputType.MouseButton1 then
+
+            dragging = true
+
+            activeInput = input
+
+            inputStart = input.Position
+
+            positionStart = frame.Position
+
+        end
+
+    end)
+
+    local changed = UIS.InputChanged:Connect(function(input)
+
+        if dragging and (
+
+            input == activeInput or
+
+            input.UserInputType ==
+
+                Enum.UserInputType.MouseMovement
+
+        ) then
+
+            local delta = input.Position - inputStart
+
+            frame.Position = UDim2.new(
+
+                positionStart.X.Scale,
+
+                positionStart.X.Offset + delta.X,
+
+                positionStart.Y.Scale,
+
+                positionStart.Y.Offset + delta.Y
+
+            )
+
+        end
+
+    end)
+
+    local ended = UIS.InputEnded:Connect(function(input)
+
+        if input == activeInput then
+
+            dragging = false
+
+        end
+
+    end)
+
+    table.insert(connections, began)
+
+    table.insert(connections, changed)
+
+    table.insert(connections, ended)
+
+end
+
+makeDraggable(main, title)
+
+-- UPDATES
+
+local updateTime = 0
+
+local frames = 0
+
+local fpsTime = 0
+
+table.insert(connections,
+
+    RunService.Heartbeat:Connect(function(dt)
+
+        if not running then return end
+
+        frames += 1
+
+        fpsTime += dt
+
+        if fpsTime >= 1 then
+
+            fpsText.Text = "📊 FPS: " ..
+
+                math.floor(frames / fpsTime)
+
+            frames = 0
+
+            fpsTime = 0
+
+        end
+
+        if os.clock() - updateTime < 0.25 then
+
+            return
+
+        end
+
+        updateTime = os.clock()
+
+        if speedOn then
+
+            applySpeed()
+
+        end
+
+        if autoDestination then
+
+            local part = workspace:FindFirstChild(
+
+                autoDestination, true
+
+            )
+
+            local _, hum = getParts()
+
+            if part and part:IsA("BasePart") and hum then
+
+                hum:MoveTo(part.Position)
+
+            else
+
+                status.Text = "Missing: " .. autoDestination
+
+                autoDestination = nil
+
+            end
+
+        end
+
+    end)
+
+)
+
+table.insert(connections,
+
+    Players.PlayerAdded:Connect(function()
+
+        if espOn or namesOn then
+
+            task.defer(updateESP)
+
+        end
+
+    end)
+
+)
+
+table.insert(connections,
+
+    Players.PlayerRemoving:Connect(function()
+
+        if espOn or namesOn then
+
+            task.defer(updateESP)
+
+        end
+
+    end)
+
+)
 
 table.insert(connections,
 
@@ -688,35 +1056,15 @@ table.insert(connections,
 
         task.wait(0.5)
 
-        if running then
-
-            applySpeed()
-
-            refreshESP()
-
-        end
+        if running then applySpeed() end
 
     end)
 
 )
 
-table.insert(connections,
+local function cleanup()
 
-    RunService.Heartbeat:Connect(function()
-
-        if running and speedOn then
-
-            applySpeed()
-
-        end
-
-    end)
-
-)
-
--- CLEAN CLOSE
-
-button(toolsPage, "CLOSE HUB", function()
+    if not running then return end
 
     running = false
 
@@ -724,7 +1072,7 @@ button(toolsPage, "CLOSE HUB", function()
 
     applySpeed()
 
-    clearESP()
+    clearVisuals()
 
     if activeTrack then
 
@@ -738,11 +1086,17 @@ button(toolsPage, "CLOSE HUB", function()
 
     Lighting.ClockTime = oldClock
 
-    for _, c in ipairs(connections) do
+    for _, connection in ipairs(connections) do
 
-        c:Disconnect()
+        connection:Disconnect()
 
     end
+
+end
+
+gui.Destroying:Connect(cleanup)
+
+makeButton(tools, "❌ CLOSE HUB", function()
 
     gui:Destroy()
 
