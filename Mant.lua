@@ -1,64 +1,44 @@
 
 
--- 👑 MANT HUB V6 GOLD EDITION
+-- 👑 MANT HUB V7 GOLD EDITION
 
--- Roblox Luau LocalScript
+-- Mobiel menu
 
 local Players = game:GetService("Players")
 
-local RunService = game:GetService("RunService")
-
-local UIS = game:GetService("UserInputService")
+local RS = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
 
-local playerGui = player:WaitForChild("PlayerGui")
+local remote = RS:WaitForChild("MantV7Event")
 
--- Vervang 0 door je Roblox afbeeldings-ID
+local hitboxOn = false
 
-local BACKGROUND_ID = 0
-
-local speed = 32
+local showHitbox = false
 
 local speedOn = false
 
-local autoChase = false
-
-local autoPass = false
-
-local running = true
-
-local originalSpeed = nil
-
-local lastUpdate = 0
-
--- Oud menu vervangen
-
-local old = playerGui:FindFirstChild("MantGold")
-
-if old then old:Destroy() end
-
--- MENU
+local HITBOX_SIZE = 20
 
 local gui = Instance.new("ScreenGui")
 
-gui.Name = "MantGold"
+gui.Name = "MantHubV7"
 
 gui.ResetOnSpawn = false
 
-gui.Parent = playerGui
+gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
 
-frame.Size = UDim2.fromOffset(280, 340)
+frame.Size = UDim2.fromOffset(275, 290)
 
-frame.Position = UDim2.new(0.5, -140, 0.25, 0)
+frame.Position = UDim2.new(0.5, -137, 0.25, 0)
 
 frame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
 
-frame.BorderSizePixel = 0
-
 frame.Active = true
+
+frame.Draggable = true
 
 frame.Parent = gui
 
@@ -66,217 +46,155 @@ Instance.new("UICorner", frame).CornerRadius =
 
     UDim.new(0, 14)
 
-local border = Instance.new("UIStroke")
+local stroke = Instance.new("UIStroke")
 
-border.Color = Color3.fromRGB(255, 195, 65)
+stroke.Color = Color3.fromRGB(255, 200, 75)
 
-border.Thickness = 2
+stroke.Thickness = 2
 
-border.Parent = frame
-
--- GOUDEN ACHTERGROND
-
-local background = Instance.new("ImageLabel")
-
-background.Size = UDim2.fromScale(1, 1)
-
-background.BackgroundTransparency = 1
-
-background.Image = BACKGROUND_ID ~= 0
-
-    and ("rbxassetid://" .. BACKGROUND_ID)
-
-    or ""
-
-background.ImageTransparency = 0.35
-
-background.ScaleType = Enum.ScaleType.Crop
-
-background.Parent = frame
-
-Instance.new("UICorner", background).CornerRadius =
-
-    UDim.new(0, 14)
-
-local function makeButton(text, y)
-
-    local button = Instance.new("TextButton")
-
-    button.Size = UDim2.new(1, -24, 0, 42)
-
-    button.Position = UDim2.fromOffset(12, y)
-
-    button.BackgroundColor3 = Color3.fromRGB(35, 29, 16)
-
-    button.TextColor3 = Color3.fromRGB(255, 210, 100)
-
-    button.TextSize = 15
-
-    button.Font = Enum.Font.GothamBold
-
-    button.Text = text
-
-    button.Parent = frame
-
-    Instance.new("UICorner", button).CornerRadius =
-
-        UDim.new(0, 9)
-
-    local stroke = Instance.new("UIStroke")
-
-    stroke.Color = Color3.fromRGB(185, 135, 50)
-
-    stroke.Thickness = 1
-
-    stroke.Parent = button
-
-    return button
-
-end
+stroke.Parent = frame
 
 local title = Instance.new("TextLabel")
 
-title.Size = UDim2.new(1, -50, 0, 55)
+title.Size = UDim2.new(1, -45, 0, 45)
 
-title.Position = UDim2.fromOffset(8, 0)
+title.Position = UDim2.fromOffset(8, 4)
 
 title.BackgroundTransparency = 1
 
-title.Text = "👑 MANT HUB V6"
+title.Text = "👑 MANT HUB V7"
 
-title.TextColor3 = Color3.fromRGB(255, 205, 80)
+title.TextColor3 = Color3.fromRGB(255, 210, 90)
 
-title.Font = Enum.Font.GothamBlack
+title.Font = Enum.Font.GothamBold
 
-title.TextSize = 22
+title.TextSize = 21
 
 title.Parent = frame
 
-local close = Instance.new("TextButton")
+local function button(text, y)
 
-close.Size = UDim2.fromOffset(30, 30)
+    local b = Instance.new("TextButton")
 
-close.Position = UDim2.new(1, -37, 0, 12)
+    b.Size = UDim2.new(1, -24, 0, 42)
 
-close.Text = "X"
+    b.Position = UDim2.fromOffset(12, y)
 
-close.BackgroundColor3 = Color3.fromRGB(100, 35, 30)
+    b.BackgroundColor3 = Color3.fromRGB(44, 36, 18)
 
-close.TextColor3 = Color3.new(1, 1, 1)
+    b.TextColor3 = Color3.fromRGB(255, 220, 130)
 
-close.Parent = frame
+    b.Font = Enum.Font.GothamBold
 
-local chaseBtn = makeButton("🎯 AUTO CHASE: OFF", 66)
+    b.TextSize = 15
 
-local passBtn = makeButton("💣 AUTO PASS ASSIST: OFF", 119)
+    b.Text = text
 
-local speedBtn = makeButton("⚡ SPEED 32: OFF", 172)
+    b.Parent = frame
 
-local status = Instance.new("TextLabel")
+    Instance.new("UICorner", b).CornerRadius =
 
-status.Size = UDim2.new(1, -24, 0, 60)
+        UDim.new(0, 9)
 
-status.Position = UDim2.fromOffset(12, 231)
-
-status.BackgroundTransparency = 1
-
-status.TextColor3 = Color3.fromRGB(255, 215, 120)
-
-status.TextSize = 14
-
-status.TextWrapped = true
-
-status.Font = Enum.Font.GothamBold
-
-status.Text = "👑 MANT GOLD READY"
-
-status.Parent = frame
-
-local footer = Instance.new("TextLabel")
-
-footer.Size = UDim2.new(1, 0, 0, 27)
-
-footer.Position = UDim2.fromOffset(0, 304)
-
-footer.BackgroundTransparency = 1
-
-footer.TextColor3 = Color3.fromRGB(180, 145, 70)
-
-footer.Text = "MANT HUB • GOLD EDITION"
-
-footer.TextSize = 11
-
-footer.Parent = frame
-
-local function getHumanoid()
-
-    local char = player.Character
-
-    return char and char:FindFirstChildOfClass("Humanoid")
+    return b
 
 end
 
-local function applySpeed()
+local hitBtn = button("🎯 HITBOX: OFF", 55)
 
-    local hum = getHumanoid()
+local showBtn = button("👀 SHOW HITBOX: OFF", 105)
 
-    if not hum then return end
+local speedBtn = button("⚡ SPEED 32: OFF", 155)
 
-    if speedOn then
+local closeBtn = button("❌ CLOSE", 230)
 
-        if originalSpeed == nil then
+local info = Instance.new("TextLabel")
 
-            originalSpeed = hum.WalkSpeed
+info.Size = UDim2.new(1, -16, 0, 25)
 
-        end
+info.Position = UDim2.fromOffset(8, 203)
 
-        hum.WalkSpeed = speed
+info.BackgroundTransparency = 1
 
-    elseif originalSpeed ~= nil then
+info.TextColor3 = Color3.fromRGB(245, 201, 80)
 
-        hum.WalkSpeed = originalSpeed
+info.Text = "💛 Hitbox Size: 20 studs"
 
-        originalSpeed = nil
+info.TextSize = 14
+
+info.Parent = frame
+
+local closeButton = Instance.new("TextButton")
+
+closeButton.Size = UDim2.fromOffset(28, 28)
+
+closeButton.Position = UDim2.new(1, -35, 0, 9)
+
+closeButton.Text = "X"
+
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+
+closeButton.BackgroundColor3 = Color3.fromRGB(120, 40, 40)
+
+closeButton.Parent = frame
+
+local visuals = {}
+
+local function clearVisuals()
+
+    for _, visual in pairs(visuals) do
+
+        visual:Destroy()
 
     end
 
+    table.clear(visuals)
+
 end
 
-local function nearest(root)
+local function updateVisuals()
 
-    local nearestRoot = nil
+    clearVisuals()
 
-    local nearestName = nil
+    if not showHitbox then return end
 
-    local closest = 100
+    for _, p in ipairs(Players:GetPlayers()) do
 
-    for _, other in ipairs(Players:GetPlayers()) do
+        if p ~= player and p.Character then
 
-        if other ~= player and other.Character then
+            local root =
 
-            local target =
+                p.Character:FindFirstChild("HumanoidRootPart")
 
-                other.Character:FindFirstChild("HumanoidRootPart")
+            if root then
 
-            local hum =
+                local sphere = Instance.new("SphereHandleAdornment")
 
-                other.Character:FindFirstChildOfClass("Humanoid")
+                sphere.Name = "MantHitboxVisual"
 
-            if target and hum and hum.Health > 0 then
+                sphere.Adornee = root
 
-                local distance =
+                sphere.Size = Vector3.new(
 
-                    (root.Position - target.Position).Magnitude
+                    HITBOX_SIZE,
 
-                if distance < closest then
+                    HITBOX_SIZE,
 
-                    closest = distance
+                    HITBOX_SIZE
 
-                    nearestRoot = target
+                )
 
-                    nearestName = other.DisplayName
+                sphere.Color3 = Color3.fromRGB(255, 200, 50)
 
-                end
+                sphere.Transparency = 0.8
+
+                sphere.AlwaysOnTop = false
+
+                sphere.ZIndex = 1
+
+                sphere.Parent = gui
+
+                visuals[p] = sphere
 
             end
 
@@ -284,35 +202,33 @@ local function nearest(root)
 
     end
 
-    return nearestRoot, nearestName
-
 end
 
-local function setButton(button, enabled, name)
+hitBtn.MouseButton1Click:Connect(function()
 
-    button.Text = name .. (enabled and ": ON" or ": OFF")
+    hitboxOn = not hitboxOn
 
-    button.BackgroundColor3 = enabled
+    hitBtn.Text = hitboxOn
 
-        and Color3.fromRGB(85, 65, 22)
+        and "🎯 HITBOX: ON"
 
-        or Color3.fromRGB(35, 29, 16)
+        or "🎯 HITBOX: OFF"
 
-end
-
-chaseBtn.MouseButton1Click:Connect(function()
-
-    autoChase = not autoChase
-
-    setButton(chaseBtn, autoChase, "🎯 AUTO CHASE")
+    remote:FireServer("Hitbox", hitboxOn)
 
 end)
 
-passBtn.MouseButton1Click:Connect(function()
+showBtn.MouseButton1Click:Connect(function()
 
-    autoPass = not autoPass
+    showHitbox = not showHitbox
 
-    setButton(passBtn, autoPass, "💣 AUTO PASS ASSIST")
+    showBtn.Text = showHitbox
+
+        and "👀 SHOW HITBOX: ON"
+
+        or "👀 SHOW HITBOX: OFF"
+
+    updateVisuals()
 
 end)
 
@@ -320,171 +236,66 @@ speedBtn.MouseButton1Click:Connect(function()
 
     speedOn = not speedOn
 
-    setButton(speedBtn, speedOn, "⚡ SPEED 32")
+    speedBtn.Text = speedOn
 
-    applySpeed()
+        and "⚡ SPEED 32: ON"
 
-end)
+        or "⚡ SPEED 32: OFF"
 
--- AUTOMATISCHE ACHTERVOLGING
-
-local heartbeat
-
-heartbeat = RunService.Heartbeat:Connect(function()
-
-    if not running then return end
-
-    if os.clock() - lastUpdate < 0.25 then return end
-
-    lastUpdate = os.clock()
-
-    if speedOn then
-
-        applySpeed()
-
-    end
-
-    if not autoChase and not autoPass then
-
-        status.Text = "👑 MANT GOLD READY"
-
-        return
-
-    end
-
-    local char = player.Character
-
-    if not char then return end
-
-    local root = char:FindFirstChild("HumanoidRootPart")
-
-    local hum = getHumanoid()
-
-    if not root or not hum or hum.Health <= 0 then
-
-        return
-
-    end
-
-    local target, name = nearest(root)
-
-    if target then
-
-        hum:MoveTo(target.Position)
-
-        status.Text = "🎯 Doelwit: " .. name
-
-    else
-
-        status.Text = "🔎 Geen speler dichtbij"
-
-    end
+    remote:FireServer("Speed", speedOn)
 
 end)
 
-local respawnConnection =
+local connections = {}
+
+table.insert(connections,
+
+    Players.PlayerAdded:Connect(updateVisuals)
+
+)
+
+table.insert(connections,
+
+    Players.PlayerRemoving:Connect(function()
+
+        task.defer(updateVisuals)
+
+    end)
+
+)
+
+table.insert(connections,
 
     player.CharacterAdded:Connect(function()
 
-        originalSpeed = nil
-
         task.wait(0.5)
 
-        if running then applySpeed() end
+        remote:FireServer("Hitbox", hitboxOn)
+
+        remote:FireServer("Speed", speedOn)
 
     end)
 
--- MENU VERSLEPEN
+)
 
-local dragging = false
+local function close()
 
-local dragInput
+    remote:FireServer("Hitbox", false)
 
-local dragStart
+    remote:FireServer("Speed", false)
 
-local startPos
+    clearVisuals()
 
-title.InputBegan:Connect(function(input)
+    for _, c in ipairs(connections) do
 
-    if input.UserInputType == Enum.UserInputType.Touch
-
-        or input.UserInputType == Enum.UserInputType.MouseButton1 then
-
-        dragging = true
-
-        dragInput = input
-
-        dragStart = input.Position
-
-        startPos = frame.Position
+        c:Disconnect()
 
     end
 
-end)
-
-local moveConnection =
-
-    UIS.InputChanged:Connect(function(input)
-
-        if dragging and
-
-            (input == dragInput or
-
-            input.UserInputType ==
-
-                Enum.UserInputType.MouseMovement) then
-
-            local delta = input.Position - dragStart
-
-            frame.Position = UDim2.new(
-
-                startPos.X.Scale,
-
-                startPos.X.Offset + delta.X,
-
-                startPos.Y.Scale,
-
-                startPos.Y.Offset + delta.Y
-
-            )
-
-        end
-
-    end)
-
-local endConnection =
-
-    UIS.InputEnded:Connect(function(input)
-
-        if input == dragInput or
-
-            input.UserInputType ==
-
-                Enum.UserInputType.MouseButton1 then
-
-            dragging = false
-
-        end
-
-    end)
-
-close.MouseButton1Click:Connect(function()
-
-    running = false
-
-    speedOn = false
-
-    applySpeed()
-
-    heartbeat:Disconnect()
-
-    respawnConnection:Disconnect()
-
-    moveConnection:Disconnect()
-
-    endConnection:Disconnect()
-
     gui:Destroy()
 
-end)
+end
 
+closeBtn.MouseButton1Click:Connect(close)
+
+closeButton.MouseButton1Click:Connect(close)
